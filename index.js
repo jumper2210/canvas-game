@@ -1,6 +1,11 @@
 const canvas = document.querySelector("canvas")
 const context = canvas.getContext("2d")
 
+const scoreLabel = document.querySelector("#scoreLabel")
+const startGaneBtn = document.querySelector("#startGaneBtn")
+const modal = document.querySelector("#modal")
+const bigScore = document.querySelector("#bigScore")
+
 canvas.width = innerWidth
 canvas.height = innerHeight
 
@@ -95,10 +100,20 @@ class Partcle {
 const x = canvas.width / 2
 const y = canvas.height / 2
 
-const player = new Player(x, y, 15, "white")
-const projectiles = []
-const enemies = []
-const particles = []
+let player = new Player(x, y, 15, "white")
+let projectiles = []
+let enemies = []
+let particles = []
+
+function init() {
+  player = new Player(x, y, 15, "white")
+  projectiles = []
+  enemies = []
+  particles = []
+  score = 0
+  scoreLabel.innerHTML = score
+  bigScore.innerHTML = score
+}
 
 player.draw()
 function spawnEnemies() {
@@ -128,6 +143,7 @@ function spawnEnemies() {
 }
 
 let animationId
+let score = 0
 
 function animate() {
   animationId = requestAnimationFrame(animate)
@@ -163,11 +179,15 @@ function animate() {
     //end game
     if (dist - enemy.radius - player.radius < 1) {
       cancelAnimationFrame(animationId)
+      modal.style.display = "flex"
+      bigScore.innerHTML = score
     }
     projectiles.forEach((projectile, projectileIndex) => {
       const dist = Math.hypot(projectile.x - enemy.x, projectile.y - enemy.y)
 
       if (dist - enemy.radius - projectile.radius < 1) {
+        score += 100
+        scoreLabel.innerHTML = score
         for (let i = 0; i < enemy.radius * 2; i++) {
           particles.push(
             new Partcle(
@@ -183,12 +203,17 @@ function animate() {
           )
         }
         if (enemy.radius - 10 > 5) {
+          score += 100
+          scoreLabel.innerHTML = score
+
           gsap.to(enemy, { radius: enemy.radius - 10 })
           enemy.radius -= 10
           setTimeout(() => {
             projectiles.splice(projectileIndex, 1)
           }, 0)
         } else {
+          score += 250
+          scoreLabel.innerHTML = score
           setTimeout(() => {
             enemies.splice(index, 1)
             projectiles.splice(projectileIndex, 1)
@@ -214,5 +239,10 @@ addEventListener("click", (event) => {
     new Projectile(canvas.width / 2, canvas.height / 2, 5, "white", velocity)
   )
 })
-animate()
-spawnEnemies()
+
+startGaneBtn.addEventListener("click", () => {
+  init()
+  animate()
+  spawnEnemies()
+  modal.style.display = "none"
+})
